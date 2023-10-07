@@ -29,7 +29,7 @@ struct Args {
     api_key: String,
 
     #[arg(long)]
-    filter: u32,
+    filter_time_mins: u32,
 }
 
 
