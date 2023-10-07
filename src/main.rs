@@ -56,7 +56,7 @@ async fn main() -> Result<(), Error> {
     data1.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
     for game in &data1.response.games {
         if game.playtime_forever >= args.filter_time_mins {
-            println!("{}: {}mins", game.name, game.playtime_forever);
+            println!("{}: {}hrs {}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
         }
     }
 
@@ -64,7 +64,7 @@ async fn main() -> Result<(), Error> {
     data2.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
     for game in &data2.response.games {
         if game.playtime_forever >= args.filter_time_mins {
-            println!("{}: {}mins", game.name, game.playtime_forever);
+            println!("{}: {}hrs {}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
         }
     }
 
