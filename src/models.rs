@@ -5,18 +5,18 @@
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ApiResponse {
     pub response: OwnedGamesResponse,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct OwnedGamesResponse {
     pub game_count: u32,
     pub games: Vec<GameInfo>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct GameInfo {
     pub appid: u32,
     pub name: String,

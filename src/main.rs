@@ -13,6 +13,7 @@ use reqwest::Error;
 mod models;
 
 use crate::models::ApiResponse;
+use crate::models::GameInfo;
 
 use clap::Parser;
 
@@ -46,8 +47,27 @@ async fn main() -> Result<(), Error> {
         panic!("Error getting user data");
     };
 
-    display_user_data(args.steam_id1, user1, args.filter_time_mins);
-    display_user_data(args.steam_id2, user2, args.filter_time_mins);
+    display_user_data(args.steam_id1, user1.clone(), args.filter_time_mins);
+    display_user_data(args.steam_id2, user2.clone(), args.filter_time_mins);
+
+    let player2_games: Vec<String> = user2.response.games.into_iter().map(|a| a.name).collect();
+
+    let mut shared_games: Vec<GameInfo> = vec![];
+
+    for game in user1.response.games {
+        if player2_games.contains(&game.name) {
+            shared_games.push(game);
+        }
+    }
+
+    println!("\n -> Shared Games <-")
+    for game in shared_games {
+        println!("{} {}hrs:{}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
+    }
+
+    // println!("{shared_games:#?}");
+
+    
 
     // Write to a file for debugging in case of parsing error
     // std::fs::write( 
@@ -57,7 +77,6 @@ async fn main() -> Result<(), Error> {
 
     Ok(())
 }
-
 
 pub async fn get_user_data(steam_id: u64, api_key: &str) -> Option<ApiResponse> {
     // basics used for every request
