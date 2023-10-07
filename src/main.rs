@@ -38,35 +38,22 @@ async fn main() -> Result<(), Error> {
     // Parse command line arguments
     let args = Args::parse();
 
-    let Some(mut data1) = get_user_data(args.steam_id1, &args.api_key).await else {
+    let Some(user1) = get_user_data(args.steam_id1, &args.api_key).await else {
         panic!("Error getting user data");
     };
 
-    let Some(mut data2) = get_user_data(args.steam_id2, &args.api_key).await else {
+    let Some(user2) = get_user_data(args.steam_id2, &args.api_key).await else {
         panic!("Error getting user data");
     };
+
+    display_user_data(args.steam_id1, user1, args.filter_time_mins);
+    display_user_data(args.steam_id2, user2, args.filter_time_mins);
 
     // Write to a file for debugging in case of parsing error
-    std::fs::write( 
-        format!("{}.json", args.steam_id1), 
-        serde_json::to_string_pretty(&data1).expect("serialization error")
-    ).expect("error writing file");
-
-    println!(" -> User {} <-", args.steam_id1);
-    data1.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
-    for game in &data1.response.games {
-        if game.playtime_forever >= args.filter_time_mins {
-            println!("{}: {}hrs {}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
-        }
-    }
-
-    println!("\n -> User {} <-", args.steam_id2);
-    data2.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
-    for game in &data2.response.games {
-        if game.playtime_forever >= args.filter_time_mins {
-            println!("{}: {}hrs {}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
-        }
-    }
+    // std::fs::write( 
+    //     format!("{}.json", args.steam_id1), 
+    //     serde_json::to_string_pretty(&data1).expect("serialization error")
+    // ).expect("error writing file");
 
     Ok(())
 }
@@ -95,12 +82,22 @@ pub async fn get_user_data(steam_id: u64, api_key: &str) -> Option<ApiResponse> 
 
         // Parse the JSON response into our ApiResponse struct 
         let response_text = response.text().await.ok()?;
-        let mut response: ApiResponse = serde_json::from_str(&response_text).expect("Couldn't parse");
+        let response: ApiResponse = serde_json::from_str(&response_text).expect("Couldn't parse");
         // println!("{response:#?}");
         
         Some(response)
     } else {
         eprintln!("Error: Request failed with status code {:?}", response.status());
         None
+    }
+}
+
+pub fn display_user_data(steam_id: u64, mut user: ApiResponse, filter_time_mins: u32) {
+    println!(" -> User {steam_id} <-");
+    user.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
+    for game in &user.response.games {
+        if game.playtime_forever >= filter_time_mins {
+            println!("{}: {}hrs {}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
+        }
     }
 }
