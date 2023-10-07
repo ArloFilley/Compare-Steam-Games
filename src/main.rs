@@ -55,7 +55,7 @@ async fn main() -> Result<(), Error> {
     println!(" -> User {} <-", args.steam_id1);
     data1.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
     for game in &data1.response.games {
-        if game.playtime_forever >= args.filter {
+        if game.playtime_forever >= args.filter_time_mins {
             println!("{}: {}mins", game.name, game.playtime_forever);
         }
     }
@@ -63,7 +63,7 @@ async fn main() -> Result<(), Error> {
     println!("\n -> User {} <-", args.steam_id2);
     data2.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
     for game in &data2.response.games {
-        if game.playtime_forever >= args.filter {
+        if game.playtime_forever >= args.filter_time_mins {
             println!("{}: {}mins", game.name, game.playtime_forever);
         }
     }
