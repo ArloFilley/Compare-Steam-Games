@@ -29,3 +29,54 @@ pub struct GameInfo {
     // pub playtime_disconnected: u32,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SharedGames {
+    pub users: Vec<User>,
+    pub games: Vec<Game>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct User {
+    pub username: String,
+    pub avatar: String,
+    pub user_id: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Game {
+    pub name: String,
+    pub icon: String,
+    pub playtimes: Vec<u32>,
+}
+
+// models.rs
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserApiResponse {
+    pub response: Response,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Response {
+    pub players: Vec<PlayerInfo>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct PlayerInfo {
+    pub steamid: String,
+    // pub communityvisibilitystate: i32,
+    // pub profilestate: i32,
+    pub personaname: String,
+    pub profileurl: String,
+    // pub avatar: String,
+    // pub avatarmedium: String,
+    pub avatarfull: String,
+    // pub avatarhash: String,
+    // pub lastlogoff: i64,
+    // pub personastate: i32,
+    // pub realname: String,
+    // pub primaryclanid: String,
+    // pub timecreated: i64,
+    // pub personastateflags: i32,
+}
+
