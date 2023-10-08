@@ -80,3 +80,7 @@ pub struct PlayerInfo {
     // pub personastateflags: i32,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Request {
+    pub steamids: Vec<u64>
+}
