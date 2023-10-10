@@ -82,5 +82,6 @@ pub struct PlayerInfo {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Request {
-    pub steamids: Vec<u64>
+    pub steamids: Vec<String>,
+    pub filtertime: u64
 }

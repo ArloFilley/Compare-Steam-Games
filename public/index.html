@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="index.js" defer="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer="true"></script>
+
+    <form id="form" name="form">
+        <input type="number" name="SteamId1" id="user1">
+        <input type="number" name="SteamId2" id="user2"><br>
+        <input type="number" name="FilterTime" id="filterTime">
+	    <input type="button" name="Submit" value="Submit" onclick="request()">
+    </form>
+
+    <canvas id="playtime-chart"></canvas>
+</body>
+</html>

@@ -3,19 +3,16 @@
   AUTHOR:   Arlo Filley
 */
 
+#[macro_use] extern crate rocket;
 extern crate reqwest;
 extern crate serde;
 extern crate serde_json;
 
-use std::{fs, collections::HashMap, net::SocketAddr};
-
-use serde::{Deserialize, Serialize};
-use reqwest::Error;
+use std::collections::HashMap;
 
 mod models;
 
 use crate::models::ApiResponse;
-use crate::models::GameInfo;
 use crate::models::User;
 use crate::models::Game;
 use crate::models::SharedGames;
@@ -24,54 +21,37 @@ use crate::models::Request;
 
 use clap::Parser;
 
-use axum::{
-    routing::post,
-    Router,
-    Json
-};
+use rocket::fs::FileServer;
+use rocket::serde::json::Json;
+
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(long)]
     api_key: String,
-
-    #[arg(long)]
-    filter_time_mins: u32,
 }
 
-
-#[tokio::main]
-async fn main() {
-    tracing_subscriber::fmt::init();
-
-    let app = Router::new()
-        .route("/", post(route_handler_1));
-
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
+        .mount("/", routes![get_data])
+        .mount("/public", FileServer::from("public"))
 }
 
-async fn route_handler_1(req: String) -> Json<SharedGames> {
-    println!("{req:?}");
-
-    let request = serde_json::from_str::<Request>(&req).expect("Parsing Error");
+#[post("/", data ="<request>")]
+async fn get_data(request: Json<Request>) -> Json<SharedGames> {
+    println!("{request:#?}");
     // Parse command line arguments
     let args = Args::parse();
 
-    let Some(user1) = get_user_data(request.steamids[0], &args.api_key).await else {
+    let Some(user1) = get_user_data(request.steamids[0].parse::<u64>().unwrap(), &args.api_key).await else {
         panic!("Error getting user data");
     };
 
-    let Some(user2) = get_user_data(request.steamids[1], &args.api_key).await else {
+    let Some(user2) = get_user_data(request.steamids[1].parse::<u64>().unwrap(), &args.api_key).await else {
         panic!("Error getting user data");
     };
-
-    // display_user_data(args.steam_id1, user1.clone(), args.filter_time_mins);
-    // display_user_data(args.steam_id2, user2.clone(), args.filter_time_mins);
 
     let player2_games: Vec<String> = user2.response.games.clone().into_iter().map(|a| a.name).collect();
 
@@ -99,32 +79,15 @@ async fn route_handler_1(req: String) -> Json<SharedGames> {
     let total_playtime = |a: &Game, b: &Game| b.playtimes.iter().sum::<u32>().cmp(&a.playtimes.iter().sum());
     shared_games.sort_by(total_playtime);
 
-    let Some(user1) = get_user_name(request.steamids[0], &args.api_key).await else {
+    let Some(user1) = get_user_name(request.steamids[0].parse::<u64>().unwrap(), &args.api_key).await else {
         panic!();
     };
 
-    let Some(user2) = get_user_name(request.steamids[1], &args.api_key).await else {
+    let Some(user2) = get_user_name(request.steamids[1].parse::<u64>().unwrap(), &args.api_key).await else {
         panic!();
     };
 
-
-    // println!("\n -> Shared Games <-");
-    // for game in &shared_games {
-    //    if game.playtimes[0] >= args.filter_time_mins {
-    //        println!(
-    //            "\n --> {} <--\n{}: {}hours {}mins\n{}: {}hours {}mins", 
-    //            game.name, 
-    //
-    //            user1.username,
-    //            game.playtimes[0] / 60, game.playtimes[0] % 60,
-    //
-    //            user2.username,
-    //            game.playtimes[1] / 60, game.playtimes[1] % 60,
-    //        );
-    //    }
-    // }
-
-    let shared_games = shared_games.into_iter().filter(|a| a.playtimes.iter().sum::<u32>() >= args.filter_time_mins).collect::<Vec<Game>>();
+    let shared_games = shared_games.into_iter().filter(|a| a.playtimes.iter().sum::<u32>() >= request.filtertime as u32).collect::<Vec<Game>>();
 
     let shared_games = SharedGames {
         users: vec![user1, user2],
@@ -134,8 +97,8 @@ async fn route_handler_1(req: String) -> Json<SharedGames> {
 
     // Write to a file for debugging in case of parsing error
     std::fs::write( 
-         "output.json",
-         serde_json::to_string_pretty(&shared_games).expect("serialization error")
+        "output.json",
+        serde_json::to_string_pretty(&shared_games).expect("serialization error")
     ).expect("error writing file");
 
     Json(shared_games)
@@ -198,21 +161,10 @@ pub async fn get_user_data(steam_id: u64, api_key: &str) -> Option<ApiResponse> 
         // Parse the JSON response into our ApiResponse struct 
         let response_text = response.text().await.ok()?;
         let response: ApiResponse = serde_json::from_str(&response_text).expect("Couldn't parse");
-        // println!("{response:#?}");
         
         Some(response)
     } else {
         eprintln!("Error: Request failed with status code {:?}", response.status());
         None
-    }
-}
-
-pub fn display_user_data(steam_id: u64, mut user: ApiResponse, filter_time_mins: u32) {
-    println!(" -> User {steam_id} <-");
-    user.response.games.sort_by(|a, b| b.playtime_forever.cmp(&a.playtime_forever));
-    for game in &user.response.games {
-        if game.playtime_forever >= filter_time_mins {
-            println!("{}: {}hrs {}mins", game.name, game.playtime_forever / 60, game.playtime_forever % 60);
-        }
     }
 }
