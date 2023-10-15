@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="index.css">
+
+    <!-- Scripts -->
+    <script src="index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <script src="index.js" defer="true"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer="true"></script>
-
-    <form id="form" name="form">
-        <input type="number" name="SteamId1" id="user1">
-        <input type="number" name="SteamId2" id="user2"><br>
-        <input type="number" name="FilterTime" id="filterTime">
-	    <input type="button" name="Submit" value="Submit" onclick="request()">
-    </form>
-
-    <canvas id="playtime-chart"></canvas>
+    <div id="userInputContainer" style="display: flex; justify-content: center;">
+        <input id="user" class="cool-input" type="text" placeholder="Steam Profile URL">
+        <button class="button-29" role="button" onclick="addUser()">Add User</button><br>
+    </div>
+    <h1 style="display: flex; justify-content: center; font-family: monospace;">Users</h1>
+    <div id="users" style="display: flex; justify-content: center;"></div>
+    <h1 style="display: flex; justify-content: center; font-family: monospace;">Chart</h1>
 </body>
 </html>

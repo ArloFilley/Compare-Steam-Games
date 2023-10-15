@@ -26,13 +26,13 @@ To set up and run this project locally, follow these steps:
 1. Clone the repository to your local machine:
 
 ```bash
-    git clone <repository-url>
+git clone -b webserver https://github.com/ArloFilley/Compare-Steam-Games.git
 ```
 
 2. Navigate to the project directory:
 
 ```bash
-    cd Compare-Steam-Games
+cd Compare-Steam-Games
 ```
 
 3. Start the Rust server:
