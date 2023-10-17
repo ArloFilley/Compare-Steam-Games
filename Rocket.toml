@@ -1,6 +1,6 @@
 [default]
 address = "0.0.0.0"
-port = 11234
+port = 11235
 workers = 4
 max_blocking = 512
 keep_alive = 5
@@ -8,8 +8,7 @@ ident = "Rocket"
 log_level = "normal"
 temp_dir = "/tmp"
 cli_colors = true
-## NOTE: Don't (!) use this key! Generate your own!
-secret_key = "abcdefghijklmnop"
+secret_key = "Cl92BeXxMBv4WuXLDzL5JgZlK0J0uBR7KcRml/1JMURhZUKCL0pEHpNTmdr1BiGwwk+4ln8TbsCtS1IDdtApgQ=="
 
 [default.limits]
 form = "64 kB"
@@ -26,3 +25,8 @@ ctrlc = true
 signals = ["term", "hup"]
 grace = 5
 mercy = 5
+
+[default.oauth.github]
+provider = "GitHub"
+client_id = "ad590bff0e92bf8d97f2"
+client_secret = "483b0b2e8970be6ccc030b8e8a6f40658632a8fd"

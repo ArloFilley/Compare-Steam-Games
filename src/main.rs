@@ -29,37 +29,37 @@ use rocket::State;
 use rocket::fs::FileServer;
 use rocket::serde::json::Json;
 
+use rocket::http::{Cookie, CookieJar, SameSite};
+use rocket::response::Redirect;
+use rocket_oauth2::{OAuth2, TokenResponse};
+
+#[derive(Debug)]
+struct GitHub;
+
+#[get("/login/github")]
+fn github_login(oauth2: OAuth2<GitHub>, cookies: &CookieJar<'_>) -> Redirect {
+    oauth2.get_redirect(cookies, &["user:read"]).unwrap()
+}
+
+#[get("/auth/github")]
+fn github_callback(token: TokenResponse<GitHub>, cookies: &CookieJar<'_>) -> Redirect
+{
+    cookies.add_private(
+        Cookie::build("token", token.access_token().to_string())
+            .same_site(SameSite::Lax)
+            .finish()
+    );
+
+    println!("{token:?}");
+    Redirect::to("/")
+}
+
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(long)]
     api_key: String,
-}
-
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::http::Header;
-use rocket::{Request as RocketRequest, Response};
-
-use log::info;
-
-pub struct CORS;
-
-#[rocket::async_trait]
-impl Fairing for CORS {
-    fn info(&self) -> Info {
-        Info {
-            name: "Add CORS headers to responses",
-            kind: Kind::Response,
-        }
-    }
-
-    async fn on_response<'r>(&self, _request: &'r RocketRequest<'_>, response: &mut Response<'r>) {
-        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Methods","POST, GET, PATCH, OPTIONS"));
-        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
-        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
-    }
 }
 
 
@@ -75,7 +75,8 @@ fn rocket() -> _ {
     };
 
     rocket::build()
-        .attach(CORS)
+        .mount("/", routes![github_callback, github_login])
+        .attach(OAuth2::<GitHub>::fairing("github"))
         .mount("/", routes![get_data])
         .mount("/", FileServer::from("public"))
         .manage(args)
@@ -83,10 +84,8 @@ fn rocket() -> _ {
 }
 
 #[post("/", data ="<request>")]
-async fn get_data(request: Json<Request>, args: &State<Args>) -> Json<SharedGames> {
-    let now = std::time::Instant::now();
-
-    info!("Start: {:?}", now.elapsed());
+async fn get_data(request: Json<Request>, args: &State<Args>, cookies: &CookieJar<'_>) -> Json<SharedGames> {
+    println!("{:?}", cookies.get_private("token"));
 
     let mut users = vec![];
     let mut u = vec![];
@@ -128,8 +127,6 @@ async fn get_data(request: Json<Request>, args: &State<Args>) -> Json<SharedGame
         users.push(user_data);
         u.push(user_name);
     }
-
-    info!("Data Received: {:?}", now.elapsed());
 
     let total_users = users.len();
     let mut shared_games: HashMap<u32, Game> = HashMap::new();
@@ -174,8 +171,6 @@ async fn get_data(request: Json<Request>, args: &State<Args>) -> Json<SharedGame
     games.sort_by(sort_function);
 
     let response = SharedGames { users: u, games };
-    
-    info!("Response: {:?}", now.elapsed());
 
     Json(response)
 }

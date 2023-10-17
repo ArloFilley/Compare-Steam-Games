@@ -7,10 +7,16 @@ function addUser() {
 
     const url = document.getElementById("user").value;
     const regex = /\/id\/([^/]+)/;
-    const match = url.match(regex);
+    const regex2 = /\/profiles\/([^/]+)/;
+    const match1 = url.match(regex);
+    const match2 = url.match(regex2);
 
-    if (match) {
-        const userIdOrVanityUrl = match[1];
+    if (match1) {
+        const userIdOrVanityUrl = match1[1];
+        console.log(userIdOrVanityUrl);
+        steamId = userIdOrVanityUrl;
+    } else if (match2) {
+        const userIdOrVanityUrl = match2[1];
         console.log(userIdOrVanityUrl);
         steamId = userIdOrVanityUrl;
     } else {
